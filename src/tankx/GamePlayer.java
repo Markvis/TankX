@@ -14,25 +14,24 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
-
 /**
  *
  * @author markfavis
  */
 public class GamePlayer implements Observer {
 
-    int x, y, speed, width, height, power,w,h;
+    int staticX, staticY, speed, width, height, power, xOnMap, yOnMap;
     Rectangle bbox;
     static int sensitivity = 15;
     int playerNumber;
     int imageIndex;
     ArrayList<Image> imageArray;
 
-    GamePlayer(ArrayList<Image> arrayOfImages, int x, int y, int speed, int pNum, int frameWidth, int frameHeight) {
-        this.x = x;
-        this.y = y;
-        this.w = frameWidth;
-        this.h = frameHeight;
+    GamePlayer(ArrayList<Image> arrayOfImages, int x, int y, int speed, int pNum, int xRelativeToMap, int yRelativeToMap) {
+        this.staticX = x;
+        this.staticY = y;
+        this.xOnMap = xRelativeToMap;
+        this.yOnMap = yRelativeToMap;
         this.speed = speed;
         this.imageArray = arrayOfImages;
         this.imageIndex = 0;
@@ -43,11 +42,11 @@ public class GamePlayer implements Observer {
     }
 
     public void draw(Graphics2D graphics, ImageObserver obs) {
-        graphics.drawImage(imageArray.get(imageIndex), x, y, obs);
+        graphics.drawImage(imageArray.get(imageIndex), staticX, staticY, obs);
     }
 
     public boolean collision(int x, int y, int w, int h) {
-        bbox = new Rectangle(this.x, this.y, this.width, this.height);
+        bbox = new Rectangle(this.staticX, this.staticY, this.width, this.height);
         Rectangle otherBBox = new Rectangle(x, y, w, h);
         if (this.bbox.intersects(otherBBox)) {
             return true;
@@ -62,29 +61,31 @@ public class GamePlayer implements Observer {
             KeyEvent e = (KeyEvent) ge.event;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
-                    if (x > 0) {
-                        if(imageIndex < imageArray.size() - 1)
+                    if (staticX > 0) {
+                        if (imageIndex < imageArray.size() - 1) {
                             imageIndex++;
-                        else
+                        } else {
                             imageIndex = 0;
+                        }
                     }
                     break;
                 case KeyEvent.VK_RIGHT:
-                    if (x < w - width) {
-                         if(imageIndex > 0)
+                    if (staticX < xOnMap - width) {
+                        if (imageIndex > 0) {
                             imageIndex--;
-                        else
+                        } else {
                             imageIndex = 59;
+                        }
                     }
                     break;
                 case KeyEvent.VK_UP:
-                    if (y > 0) {
-                        y -= speed ;
+                    if (staticY > 0) {
+                        //y -= speed ;
                     }
                     break;
                 case KeyEvent.VK_DOWN:
-                    if (y < h - height - 20) {
-                        y += speed ;
+                    if (staticY < yOnMap - height - 20) {
+                        //y += speed ;
                     }
                     break;
                 default:
@@ -97,23 +98,29 @@ public class GamePlayer implements Observer {
             KeyEvent e = (KeyEvent) ge.event;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_A:
-                    if (x > 0) {
-                        x -= speed + sensitivity;
+                    if (imageIndex < imageArray.size() - 1) {
+                        imageIndex++;
+                    } else {
+                        imageIndex = 0;
                     }
                     break;
                 case KeyEvent.VK_D:
-                    if (x < w - width) {
-                        x += speed + sensitivity;
+                    if (staticX < xOnMap - width) {
+                        if (imageIndex > 0) {
+                            imageIndex--;
+                        } else {
+                            imageIndex = 59;
+                        }
                     }
                     break;
                 case KeyEvent.VK_W:
-                    if (y > 0) {
-                        y -= speed + sensitivity;
+                    if (staticY > 0) {
+                        //y -= speed + sensitivity;
                     }
                     break;
-                case KeyEvent.VK_S: 
-                   if (y < h - height - 20) {
-                        y += speed + sensitivity;
+                case KeyEvent.VK_S:
+                    if (staticY < yOnMap - height - 20) {
+                        //y += speed + sensitivity;
                     }
                     break;
                 default:
@@ -134,22 +141,26 @@ public class GamePlayer implements Observer {
             }
         }
     }
-    
-    public int calculateMove(){
-        
-        return 0;
-    }
 
     /**
      * this method will return the central x y coordinates of the player
+     *
      * @return the center coordinates of the player
      */
     public ArrayList<Integer> fire() {
-        ArrayList <Integer> coordinates = new ArrayList<>();
-        
-        coordinates.add(this.x + (imageArray.get(0).getWidth(null)/2));
-        coordinates.add(this.y + (imageArray.get(0).getHeight(null)/2));
-        
+        ArrayList<Integer> coordinates = new ArrayList<>();
+
+        coordinates.add(this.staticX + (imageArray.get(0).getWidth(null) / 2));
+        coordinates.add(this.staticY + (imageArray.get(0).getHeight(null) / 2));
+
         return coordinates;
+    }
+
+    public int getXcenter() {
+        return staticX + xOnMap / 2;
+    }
+
+    public int getYcenter() {
+        return staticY + yOnMap / 2;
     }
 }
