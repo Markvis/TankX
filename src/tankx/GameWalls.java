@@ -54,10 +54,7 @@ public class GameWalls {
     public boolean collision(int x, int y, int w, int h) {
         bbox = new Rectangle(this.x, this.y, this.w, this.h);
         Rectangle otherBBox = new Rectangle(x, y, w, h);
-        if (this.bbox.intersects(otherBBox)) {
-            return true;
-        }
-        return false;
+        return this.bbox.intersects(otherBBox);
     }
 
     public void draw(Graphics2D graphics,int xOffset, int yOffset, ImageObserver obs) {

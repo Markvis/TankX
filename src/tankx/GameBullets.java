@@ -18,14 +18,14 @@ import java.util.Random;
  */
 public class GameBullets {
 
-    int x, y, width, height;
+    int x, y, width, height, imageIndex, firedBy;
     double xSpeed, ySpeed;
     boolean show;
     Rectangle bbox;
-    int imageIndex;
     ArrayList<Image> imageArray;
 
-    public GameBullets(ArrayList<Image> img, int xStart, int yStart, double xMoveSpeed, double yMoveSpeed, int passedImageIndex, boolean visibility) {
+    public GameBullets(ArrayList<Image> img, int xStart, int yStart, double xMoveSpeed, 
+            double yMoveSpeed, int passedImageIndex, boolean visibility, int fire) {
         this.x = xStart;
         this.y = yStart;
         this.xSpeed = xMoveSpeed;
@@ -33,6 +33,7 @@ public class GameBullets {
         this.show = visibility;
         this.imageArray = img;
         this.imageIndex = passedImageIndex;
+        this.firedBy = fire;
         width = imageArray.get(0).getWidth(null);
         height = imageArray.get(0).getHeight(null);
     }
@@ -52,7 +53,7 @@ public class GameBullets {
 
     public void draw(Graphics2D graphics, int xOffset, int yOffset, ImageObserver obs) {
         if (show) {
-            graphics.drawImage(imageArray.get(imageIndex), x - xOffset, y - yOffset, obs);
+            graphics.drawImage(imageArray.get(imageIndex), x - (this.width/2) - xOffset, y - (this.height/2) - yOffset, obs);
         }
     }
 
@@ -67,9 +68,6 @@ public class GameBullets {
     public boolean collision(int x, int y, int w, int h) {
         bbox = new Rectangle(this.x, this.y, this.width, this.height);
         Rectangle otherBBox = new Rectangle(x, y, w, h);
-        if (this.bbox.intersects(otherBBox)) {
-            return true;
-        }
-        return false;
+        return this.bbox.intersects(otherBBox);
     }
 }

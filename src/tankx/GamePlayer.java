@@ -20,7 +20,7 @@ import java.util.Observer;
  */
 public class GamePlayer implements Observer {
 
-    int staticX, staticY, speed, width, height, power, xOnMap, yOnMap;
+    int staticX, staticY, speed, width, height, power, xOnMap, yOnMap, health;
     Rectangle bbox;
     static int sensitivity = 15;
     int playerNumber;
@@ -36,6 +36,7 @@ public class GamePlayer implements Observer {
         this.imageArray = arrayOfImages;
         this.imageIndex = 0;
         this.power = 0;
+        this.health = 3;
         width = imageArray.get(0).getWidth(null);
         height = imageArray.get(0).getHeight(null);
         this.playerNumber = pNum;
@@ -52,10 +53,7 @@ public class GamePlayer implements Observer {
     public boolean collision(int x, int y, int w, int h) {
         bbox = new Rectangle(this.xOnMap, this.yOnMap, this.width, this.height);
         Rectangle otherBBox = new Rectangle(x, y, w, h);
-        if (this.bbox.intersects(otherBBox)) {
-            return true;
-        }
-        return false;
+        return this.bbox.intersects(otherBBox);
     }
 
     @Override
