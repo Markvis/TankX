@@ -208,10 +208,27 @@ public class TankX extends JApplet implements Runnable {
                 bulletArray.add(new GameBullets(bulletSprite, playerOne.xOnMap + playerOne.width / 2, playerOne.yOnMap + playerOne.height / 2,
                         15.0 * Math.cos(angle), 15.0 * Math.sin(angle), playerOne.imageIndex, true));
             }
-            if (e.getKeyCode() == KeyEvent.VK_W) {
-                yMoveP2 -= 25;
+//            if (e.getKeyCode() == KeyEvent.VK_W) {
+//                yMoveP2 -= 25;
+//            } else if (e.getKeyCode() == KeyEvent.VK_S) {
+//                xMoveP2 -= 25;
+//            }
+            if (e.getKeyCode() == KeyEvent.VK_W && !playerToWallCollision(playerTwo)) {
+                double angle = getMultiplier(playerTwo.imageIndex);
+                yMoveP2 -= 15.0 * Math.sin(angle);
+                xMoveP2 -= 15.0 * Math.cos(angle);
+                playerTwo.yOnMap -= 15.0 * Math.sin(angle);
+                playerTwo.xOnMap += 15.0 * Math.cos(angle);
             } else if (e.getKeyCode() == KeyEvent.VK_S) {
-                xMoveP2 -= 25;
+                double angle = getMultiplier(playerTwo.imageIndex);
+                yMoveP2 += 15.0 * Math.sin(angle);
+                xMoveP2 += 15.0 * Math.cos(angle);
+                playerTwo.yOnMap += 15.0 * Math.sin(angle);
+                playerTwo.xOnMap -= 15.0 * Math.cos(angle);
+            } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                double angle = getMultiplier(playerTwo.imageIndex);
+                bulletArray.add(new GameBullets(bulletSprite, playerTwo.xOnMap + playerTwo.width / 2, playerTwo.yOnMap + playerTwo.height / 2,
+                        15.0 * Math.cos(angle), 15.0 * Math.sin(angle), playerTwo.imageIndex, true));
             }
         }
     }
@@ -232,7 +249,23 @@ public class TankX extends JApplet implements Runnable {
         return 0.0;
     }
 
-    public void drawBackGroundWithTileImage(Graphics2D passedGraphics) {
+    /**
+     * 
+     * @param passedGraphics the graphics source for window
+     * @param playerNum the player number
+     */
+    public void drawBackGroundWithTileImage(Graphics2D passedGraphics, int playerNum) {
+        int xMove = 0;
+        int yMove = 0;
+        
+         if(playerNum == 1){
+             xMove = xMoveP1;
+             yMove = yMoveP1;
+         }else if (playerNum == 2) {
+             xMove = xMoveP2;
+             yMove = yMoveP2;
+         }
+        
         int TileWidth = groundImg.getWidth(this);
         int TileHeight = groundImg.getHeight(this);
 
@@ -240,9 +273,9 @@ public class TankX extends JApplet implements Runnable {
         int NumberY = (int) (mapHeight / TileHeight);
 
         for (int i = -1; i <= NumberY; i++) {
-            for (int j = 0; j <= NumberX; j++) {
-                passedGraphics.drawImage(groundImg, j * TileWidth + (xMoveP1 % TileWidth),
-                        i * TileHeight - (yMoveP1 % TileHeight), TileWidth,
+            for (int j = -1; j <= NumberX; j++) {
+                passedGraphics.drawImage(groundImg, j * TileWidth + (xMove % TileWidth),
+                        i * TileHeight - (yMove % TileHeight), TileWidth,
                         TileHeight, this);
             }
         }
@@ -290,10 +323,14 @@ public class TankX extends JApplet implements Runnable {
             }
         }
     }
+    
+    public void bulletToPlayerCollision(){
+        
+    }
 
     public void drawGame() {
-        drawBackGroundWithTileImage(window1Graphics);
-        //drawBackGroundWithTileImage(window2Graphics);
+        drawBackGroundWithTileImage(window1Graphics,1);
+        drawBackGroundWithTileImage(window2Graphics,2);
         
         // check bullet and wall collision
         bulletToWallCollision();
@@ -308,18 +345,30 @@ public class TankX extends JApplet implements Runnable {
             wallArray.get(i).update();
         }
 
-        // draw bullets
+        // draw bullets window 1
         for (int i = 0; i < bulletArray.size(); i++) {
             bulletArray.get(i).draw(window1Graphics, playerOne.xOnMap - playerOne.staticX, playerOne.yOnMap - playerOne.staticY, this);
         }
+        
+        // draw bullets window 2
+        for (int i = 0; i < bulletArray.size(); i++) {
+            bulletArray.get(i).draw(window2Graphics, playerTwo.xOnMap - playerTwo.staticX, playerTwo.yOnMap - playerTwo.staticY, this);
+        }
 
-        // draw walls
+        // draw walls window 1
         for (int i = 0; i < wallArray.size(); i++) {
             wallArray.get(i).draw(window1Graphics, playerOne.xOnMap - playerOne.staticX, playerOne.yOnMap - playerOne.staticY, this);
         }
+        
+        // draw walls window 2
+        for (int i = 0; i < wallArray.size(); i++) {
+            wallArray.get(i).draw(window2Graphics, playerTwo.xOnMap - playerTwo.staticX, playerTwo.yOnMap - playerTwo.staticY, this);
+        }
 
         playerOne.draw(window1Graphics, this);
-        //playerTwo.draw(window2Graphics, this);
+        playerOne.draw2(window2Graphics, playerTwo.xOnMap - playerTwo.staticX, playerTwo.yOnMap - playerTwo.staticY, this);
+        playerTwo.draw(window2Graphics, this);
+        playerTwo.draw2(window1Graphics, playerOne.xOnMap - playerOne.staticX, playerOne.yOnMap - playerOne.staticY, this);
     }
 
     @Override
@@ -341,10 +390,13 @@ public class TankX extends JApplet implements Runnable {
         g.fillRect(0, 0, mapWidth, mapHeight);
 
         drawGame();
+        
+        // draw the two screens
+        g.drawImage(bimg, 0, 0, this);
+        g.drawImage(bimg2, screenWidth / 2, 0, this);
+        
         // draw division line between the two screens
         g.drawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight);
-        g.drawImage(bimg, 0, 0, this);
-        g.drawImage(bimg2, mapWidth / 2, 0, this);
     }
 
     @Override

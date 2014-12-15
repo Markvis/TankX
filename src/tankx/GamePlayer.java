@@ -44,6 +44,10 @@ public class GamePlayer implements Observer {
     public void draw(Graphics2D graphics, ImageObserver obs) {
         graphics.drawImage(imageArray.get(imageIndex), staticX, staticY, obs);
     }
+    
+    public void draw2(Graphics2D graphics, int xOffset, int yOffset, ImageObserver obs) {
+        graphics.drawImage(imageArray.get(imageIndex), this.xOnMap - xOffset, this.yOnMap - yOffset, obs);
+    }
 
     public boolean collision(int x, int y, int w, int h) {
         bbox = new Rectangle(this.xOnMap, this.yOnMap, this.width, this.height);
