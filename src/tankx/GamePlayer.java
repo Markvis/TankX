@@ -46,7 +46,7 @@ public class GamePlayer implements Observer {
     }
 
     public boolean collision(int x, int y, int w, int h) {
-        bbox = new Rectangle(this.staticX, this.staticY, this.width, this.height);
+        bbox = new Rectangle(this.xOnMap, this.yOnMap, this.width, this.height);
         Rectangle otherBBox = new Rectangle(x, y, w, h);
         if (this.bbox.intersects(otherBBox)) {
             return true;
@@ -76,10 +76,10 @@ public class GamePlayer implements Observer {
                     }
                     break;
                 default:
-                    if (e.getKeyChar() == '/') {
-                        fire();
-                        System.out.println("player 1 Fire");
-                    }
+//                    if (e.getKeyChar() == '/') {
+//                        fire();
+//                        System.out.println("player 1 Fire");
+//                    }
             }
         } else if (playerNumber == 2 && ge.type == 1) {
             KeyEvent e = (KeyEvent) ge.event;
@@ -101,10 +101,10 @@ public class GamePlayer implements Observer {
                     }
                     break;
                 default:
-                    if (e.getKeyChar() == ' ') {
-                        fire();
-                        System.out.println("player 2 Fire");
-                    }
+//                    if (e.getKeyChar() == ' ') {
+//                        fire();
+//                        System.out.println("player 2 Fire");
+//                    }
             }
         } else if (ge.type == 2) {
             String msg = (String) ge.event;
@@ -127,8 +127,8 @@ public class GamePlayer implements Observer {
     public ArrayList<Integer> fire() {
         ArrayList<Integer> coordinates = new ArrayList<>();
 
-        coordinates.add(this.staticX + (imageArray.get(0).getWidth(null) / 2));
-        coordinates.add(this.staticY + (imageArray.get(0).getHeight(null) / 2));
+        coordinates.add(this.xOnMap + (imageArray.get(0).getWidth(null) / 2));
+        coordinates.add(this.yOnMap + (imageArray.get(0).getHeight(null) / 2));
 
         return coordinates;
     }

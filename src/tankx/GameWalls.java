@@ -7,6 +7,7 @@ package tankx;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.ImageObserver;
 import java.util.ArrayList;
 
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 public class GameWalls {
 
     int x, y, w, h, health, imageIndex;
+    Rectangle bbox;
     boolean destructable, visible;
     ArrayList<Image> sprite;
 
@@ -37,7 +39,7 @@ public class GameWalls {
     }
 
     public void update() {
-        if (health == 0) {
+        if (health < 1) {
             visible = false;
         }
     }
@@ -46,11 +48,21 @@ public class GameWalls {
         if (destructable) {
             health = 2;
         }
+        imageIndex = 0;
+    }
+    
+    public boolean collision(int x, int y, int w, int h) {
+        bbox = new Rectangle(this.x, this.y, this.w, this.h);
+        Rectangle otherBBox = new Rectangle(x, y, w, h);
+        if (this.bbox.intersects(otherBBox)) {
+            return true;
+        }
+        return false;
     }
 
     public void draw(Graphics2D graphics,int xOffset, int yOffset, ImageObserver obs) {
         if (visible) {
-            graphics.drawImage(sprite.get(imageIndex), x+xOffset, y-yOffset, obs);
+            graphics.drawImage(sprite.get(imageIndex), x-xOffset, y-yOffset, obs);
         }
     }
 }

@@ -43,14 +43,18 @@ public class TankX extends JApplet implements Runnable {
     ArrayList<Image> playerOneSprite = new ArrayList<>();
     ArrayList<Image> playerTwoSprite = new ArrayList<>();
     ArrayList<Image> wallsSprite = new ArrayList<>();
+    ArrayList<Image> bulletSprite = new ArrayList<>();
 
     // Wall Objects
     ArrayList<GameWalls> wallArray = new ArrayList<>();
 
+    // bullet objects
+    ArrayList<GameBullets> bulletArray = new ArrayList<>();
+
     // Images
     Image groundImg;
-    Image player1Img;
-    Image player2Img;
+//    Image player1Img;
+//    Image player2Img;
 
     // player objects
     GamePlayer playerOne;
@@ -67,8 +71,8 @@ public class TankX extends JApplet implements Runnable {
         try {
             // images
             groundImg = ImageIO.read(new File("ResourcesTank/Background.png"));
-            player1Img = ImageIO.read(new File("ResourcesTank/Tank_blue_basic_strip60.png"));
-            player2Img = ImageIO.read(new File("ResourcesTank/Tank_red_basic_strip60.png"));
+//            player1Img = ImageIO.read(new File("ResourcesTank/Tank_blue_basic_strip60.png"));
+//            player2Img = ImageIO.read(new File("ResourcesTank/Tank_red_basic_strip60.png"));
 
             // explosion sprite
             explosion.add(ImageIO.read(new File("ResourcesTank/explosion1_1.png")));
@@ -81,6 +85,17 @@ public class TankX extends JApplet implements Runnable {
             // wall sprite
             wallsSprite.add(ImageIO.read(new File("ResourcesTank/Blue_wall1.png")));
             wallsSprite.add(ImageIO.read(new File("ResourcesTank/Blue_wall2.png")));
+
+            // load bullet sprite
+            for (int i = 0; i < 60; i++) {
+                String FileName;
+                if (i < 9) {
+                    FileName = "ResourcesTank/Shell_basic_strip60/Shell_basic_0" + (i + 1) + ".png";
+                } else {
+                    FileName = "ResourcesTank/Shell_basic_strip60/Shell_basic_" + (i + 1) + ".png";
+                }
+                bulletSprite.add(ImageIO.read(new File(FileName)));
+            }
 
             // initialize player 1 sprite
             for (int i = 0; i < 60; i++) {
@@ -175,19 +190,23 @@ public class TankX extends JApplet implements Runnable {
         @Override
         public void update(Observable o, Object arg) {
             KeyEvent e = (KeyEvent) GlobalGameEvents.event;
-                    
-            if (e.getKeyCode() == KeyEvent.VK_UP) {
+
+            if (e.getKeyCode() == KeyEvent.VK_UP && !playerToWallCollision(playerOne)) {
                 double angle = getMultiplier(playerOne.imageIndex);
                 yMoveP1 -= 15.0 * Math.sin(angle);
                 xMoveP1 -= 15.0 * Math.cos(angle);
                 playerOne.yOnMap -= 15.0 * Math.sin(angle);
-                playerOne.xOnMap -= 15.0 * Math.cos(angle);
+                playerOne.xOnMap += 15.0 * Math.cos(angle);
             } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
                 double angle = getMultiplier(playerOne.imageIndex);
                 yMoveP1 += 15.0 * Math.sin(angle);
                 xMoveP1 += 15.0 * Math.cos(angle);
                 playerOne.yOnMap += 15.0 * Math.sin(angle);
-                playerOne.xOnMap += 15.0 * Math.cos(angle);
+                playerOne.xOnMap -= 15.0 * Math.cos(angle);
+            } else if (e.getKeyCode() == KeyEvent.VK_SLASH) {
+                double angle = getMultiplier(playerOne.imageIndex);
+                bulletArray.add(new GameBullets(bulletSprite, playerOne.xOnMap + playerOne.width / 2, playerOne.yOnMap + playerOne.height / 2,
+                        15.0 * Math.cos(angle), 15.0 * Math.sin(angle), playerOne.imageIndex, true));
             }
             if (e.getKeyCode() == KeyEvent.VK_W) {
                 yMoveP2 -= 25;
@@ -201,13 +220,13 @@ public class TankX extends JApplet implements Runnable {
     // then return it in radiands
     public double getMultiplier(double index) {
         if (index <= 15) {
-            return Math.toRadians(index/15*90);
+            return Math.toRadians(index / 15 * 90);
         } else if (index <= 30 && index > 15) {
-            return Math.toRadians(index/30*180);
+            return Math.toRadians(index / 30 * 180);
         } else if (index <= 45 && index > 30) {
-            return Math.toRadians(index/45*270);
+            return Math.toRadians(index / 45 * 270);
         } else if (index <= 60 && index > 45) {
-            return Math.toRadians(index/60*360);
+            return Math.toRadians(index / 60 * 360);
         }
 
         return 0.0;
@@ -229,13 +248,74 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    public boolean playerToWallCollision(Object arg) {
+
+        GamePlayer temp = (GamePlayer) arg;
+
+        int playerX = temp.xOnMap;
+        int playerY = temp.yOnMap;
+        int playerW = temp.width;
+        int playerH = temp.height;
+
+        for (int i = 0; i < wallArray.size(); i++) {
+            if (wallArray.get(i).visible 
+                    && wallArray.get(i).collision(playerX, playerY, playerW, playerH)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void bulletToWallCollision() {
+        for (int i = 0; i < wallArray.size(); i++) {
+            for (int j = 0; j < bulletArray.size(); j++) {
+                if (bulletArray.get(j).show 
+                        && wallArray.get(i).destructable
+                        && wallArray.get(i).visible
+                        && wallArray.get(i).collision(bulletArray.get(j).x, bulletArray.get(j).y, 
+                        bulletArray.get(j).width, bulletArray.get(j).height)) {
+                    wallArray.get(i).health--;
+                    wallArray.get(i).imageIndex++;
+                    bulletArray.get(j).show = false;
+                    bulletArray.get(j).reset();
+                }
+                else if(bulletArray.get(j).show 
+                        && !wallArray.get(i).destructable
+                        && wallArray.get(i).visible
+                        && wallArray.get(i).collision(bulletArray.get(j).x, bulletArray.get(j).y, 
+                        bulletArray.get(j).width, bulletArray.get(j).height)){
+                    bulletArray.get(j).show = false;
+                    bulletArray.get(j).reset();
+                }
+            }
+        }
+    }
+
     public void drawGame() {
         drawBackGroundWithTileImage(window1Graphics);
         //drawBackGroundWithTileImage(window2Graphics);
+        
+        // check bullet and wall collision
+        bulletToWallCollision();
+
+        // update bullets
+        for (int i = 0; i < bulletArray.size(); i++) {
+            bulletArray.get(i).update();
+        }
+
+        // update walls
+        for (int i = 0; i < wallArray.size(); i++) {
+            wallArray.get(i).update();
+        }
+
+        // draw bullets
+        for (int i = 0; i < bulletArray.size(); i++) {
+            bulletArray.get(i).draw(window1Graphics, playerOne.xOnMap - playerOne.staticX, playerOne.yOnMap - playerOne.staticY, this);
+        }
 
         // draw walls
         for (int i = 0; i < wallArray.size(); i++) {
-            wallArray.get(i).draw(window1Graphics, playerOne.xOnMap, playerOne.yOnMap, this);
+            wallArray.get(i).draw(window1Graphics, playerOne.xOnMap - playerOne.staticX, playerOne.yOnMap - playerOne.staticY, this);
         }
 
         playerOne.draw(window1Graphics, this);
