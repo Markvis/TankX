@@ -18,14 +18,14 @@ import java.util.Random;
  */
 public class GameBullets {
 
-    int x, y, width, height, imageIndex, firedBy;
+    int x, y, width, height, imageIndex, firedBy, damage;
     double xSpeed, ySpeed;
     boolean show;
     Rectangle bbox;
     ArrayList<Image> imageArray;
 
     public GameBullets(ArrayList<Image> img, int xStart, int yStart, double xMoveSpeed, 
-            double yMoveSpeed, int passedImageIndex, boolean visibility, int fire) {
+            double yMoveSpeed, int passedImageIndex, boolean visibility, int fire, int damage) {
         this.x = xStart;
         this.y = yStart;
         this.xSpeed = xMoveSpeed;
@@ -34,6 +34,7 @@ public class GameBullets {
         this.imageArray = img;
         this.imageIndex = passedImageIndex;
         this.firedBy = fire;
+        this.damage = damage;
         width = imageArray.get(0).getWidth(null);
         height = imageArray.get(0).getHeight(null);
     }

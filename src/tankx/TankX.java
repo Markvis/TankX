@@ -34,7 +34,7 @@ public class TankX extends JApplet implements Runnable {
     private BufferedImage bimg, bimg2;
     static Graphics2D window1Graphics, window2Graphics;
     static final int mapWidth = 2048, mapHeight = 1152, screenWidth = 1024, screenHeight = 576;
-    int xMoveP1, yMoveP1, xMoveP2, yMoveP2, player1x, player1y, player2x, player2y;
+    int xMoveP1, yMoveP1, xMoveP2, yMoveP2, player1x, player1y, player2x, player2y, p1UP = 0, p2UP = 0;
     static GameEvents GlobalGameEvents;
     boolean gameStart = false;
     AudioStream backgroundMusic;
@@ -49,12 +49,17 @@ public class TankX extends JApplet implements Runnable {
     ArrayList<Image> playerTwoSprite = new ArrayList<>();
     ArrayList<Image> wallsSprite = new ArrayList<>();
     ArrayList<Image> bulletSprite = new ArrayList<>();
+    ArrayList<Image> rocketSprite = new ArrayList<>();
+    ArrayList<Image> powerupSprite = new ArrayList<>();
 
     // Wall Objects
     ArrayList<GameWalls> wallArray = new ArrayList<>();
 
     // bullet objects
     ArrayList<GameBullets> bulletArray = new ArrayList<>();
+
+    // powerup objects
+    ArrayList<GamePowerUp> powerUpArray = new ArrayList<>();
 
     // Images
     Image groundImg;
@@ -84,6 +89,9 @@ public class TankX extends JApplet implements Runnable {
             explosion.add(ImageIO.read(new File("ResourcesTank/explosion1_5.png")));
             explosion.add(ImageIO.read(new File("ResourcesTank/explosion1_6.png")));
 
+            // game powerup sprite
+            powerupSprite.add(ImageIO.read(new File("ResourcesTank/Pickup_1.png")));
+
             // wall sprite
             wallsSprite.add(ImageIO.read(new File("ResourcesTank/Blue_wall1.png")));
             wallsSprite.add(ImageIO.read(new File("ResourcesTank/Blue_wall2.png")));
@@ -97,6 +105,16 @@ public class TankX extends JApplet implements Runnable {
                     FileName = "ResourcesTank/Shell_basic_strip60/Shell_basic_" + (i + 1) + ".png";
                 }
                 bulletSprite.add(ImageIO.read(new File(FileName)));
+            }
+            // load rocket sprite
+            for (int i = 0; i < 60; i++) {
+                String FileName;
+                if (i < 9) {
+                    FileName = "ResourcesTank/Rocket_strip60/Rocket_0" + (i + 1) + ".png";
+                } else {
+                    FileName = "ResourcesTank/Rocket_strip60/Rocket_" + (i + 1) + ".png";
+                }
+                rocketSprite.add(ImageIO.read(new File(FileName)));
             }
 
             // initialize player 1 sprite
@@ -152,6 +170,8 @@ public class TankX extends JApplet implements Runnable {
                 } else if ("4".equals(temps.get(i))) {
                     player2x = x;
                     player2y = y;
+                } else if ("5".equals(temps.get(i))) {
+                    powerUpArray.add(new GamePowerUp(powerupSprite, x, y));
                 }
                 x += 32;
             }
@@ -218,8 +238,13 @@ public class TankX extends JApplet implements Runnable {
                 playerOne.xOnMap -= 15.0 * Math.cos(angle);
             } else if (e.getKeyCode() == KeyEvent.VK_SLASH) {
                 double angle = getMultiplier(playerOne.imageIndex);
-                bulletArray.add(new GameBullets(bulletSprite, playerOne.xOnMap + playerOne.width / 2, playerOne.yOnMap + playerOne.height / 2,
-                        15.0 * Math.cos(angle), 15.0 * Math.sin(angle), playerOne.imageIndex, true, 1));
+                if (p1UP == 0) {
+                    bulletArray.add(new GameBullets(bulletSprite, playerOne.xOnMap + playerOne.width / 2, playerOne.yOnMap + playerOne.height / 2,
+                            5.0 * Math.cos(angle), 5.0 * Math.sin(angle), playerOne.imageIndex, true, 1, 1));
+                } else if (p1UP == 1) {
+                    bulletArray.add(new GameBullets(rocketSprite, playerOne.xOnMap + playerOne.width / 2, playerOne.yOnMap + playerOne.height / 2,
+                            10.0 * Math.cos(angle), 15.0 * Math.sin(angle), playerOne.imageIndex, true, 1, 3));
+                }
             }
             if (e.getKeyCode() == KeyEvent.VK_W && !playerToWallCollision(playerTwo)) {
                 double angle = getMultiplier(playerTwo.imageIndex);
@@ -235,8 +260,13 @@ public class TankX extends JApplet implements Runnable {
                 playerTwo.xOnMap -= 15.0 * Math.cos(angle);
             } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                 double angle = getMultiplier(playerTwo.imageIndex);
-                bulletArray.add(new GameBullets(bulletSprite, playerTwo.xOnMap + playerTwo.width / 2, playerTwo.yOnMap + playerTwo.height / 2,
-                        15.0 * Math.cos(angle), 15.0 * Math.sin(angle), playerTwo.imageIndex, true, 2));
+                if (p2UP == 0) {
+                    bulletArray.add(new GameBullets(bulletSprite, playerTwo.xOnMap + playerTwo.width / 2, playerTwo.yOnMap + playerTwo.height / 2,
+                            5.0 * Math.cos(angle), 5.0 * Math.sin(angle), playerTwo.imageIndex, true, 2, 1));
+                } else if (p2UP == 1) {
+                    bulletArray.add(new GameBullets(rocketSprite, playerTwo.xOnMap + playerTwo.width / 2, playerTwo.yOnMap + playerTwo.height / 2,
+                            10.0 * Math.cos(angle), 15.0 * Math.sin(angle), playerTwo.imageIndex, true, 2, 3));
+                }
             }
         }
     }
@@ -315,7 +345,7 @@ public class TankX extends JApplet implements Runnable {
                         && wallArray.get(i).visible
                         && wallArray.get(i).collision(bulletArray.get(j).x, bulletArray.get(j).y,
                                 bulletArray.get(j).width, bulletArray.get(j).height)) {
-                    wallArray.get(i).health--;
+                    wallArray.get(i).health -= bulletArray.get(j).damage;
                     wallArray.get(i).imageIndex++;
                     bulletArray.get(j).show = false;
                     bulletArray.get(j).reset();
@@ -339,13 +369,27 @@ public class TankX extends JApplet implements Runnable {
                 if (bulletArray.get(i).firedBy == 2
                         && bulletArray.get(i).collision(playerOne.xOnMap, playerOne.yOnMap, playerOne.width, playerOne.height)) {
                     bulletArray.get(i).reset();
-                    playerOne.health--;
+                    playerOne.health -= bulletArray.get(i).damage;
                     explosionSound1();
                 } else if (bulletArray.get(i).firedBy == 1
                         && bulletArray.get(i).collision(playerTwo.xOnMap, playerTwo.yOnMap, playerTwo.width, playerTwo.height)) {
                     bulletArray.get(i).reset();
-                    playerTwo.health--;
+                    playerTwo.health -= bulletArray.get(i).damage;
                     explosionSound1();
+                }
+            }
+        }
+    }
+
+    public void powerUpToPlayerCollision() {
+        for (int i = 0; i < powerUpArray.size(); i++) {
+            if (powerUpArray.get(i).visible) {
+                if (powerUpArray.get(i).collision(playerOne.xOnMap, playerOne.yOnMap, playerOne.width, playerOne.height)) {
+                    powerUpArray.get(i).reset();
+                    p1UP = 1;
+                } else if (powerUpArray.get(i).collision(playerTwo.xOnMap, playerTwo.yOnMap, playerTwo.width, playerTwo.height)) {
+                    powerUpArray.get(i).reset();
+                    p2UP = 1;
                 }
             }
         }
@@ -358,6 +402,7 @@ public class TankX extends JApplet implements Runnable {
         // check collisions
         bulletToWallCollision();
         bulletToPlayerCollision();
+        powerUpToPlayerCollision();
 
         // update bullets
         for (int i = 0; i < bulletArray.size(); i++) {
@@ -367,6 +412,16 @@ public class TankX extends JApplet implements Runnable {
         // update walls
         for (int i = 0; i < wallArray.size(); i++) {
             wallArray.get(i).update();
+        }
+
+        // draw powerups window 1
+        for (int i = 0; i < powerUpArray.size(); i++) {
+            powerUpArray.get(i).draw(window1Graphics, playerOne.xOnMap - playerOne.staticX, playerOne.yOnMap - playerOne.staticY, this);
+        }
+
+        // draw powerups window 2
+        for (int i = 0; i < powerUpArray.size(); i++) {
+            powerUpArray.get(i).draw(window2Graphics, playerTwo.xOnMap - playerTwo.staticX, playerTwo.yOnMap - playerTwo.staticY, this);
         }
 
         // draw bullets window 1
@@ -427,6 +482,21 @@ public class TankX extends JApplet implements Runnable {
             g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
             g.setColor(Color.red);
             g.drawString("Please Press ENTER to Start", screenWidth / 3, screenHeight / 6);
+            g.drawString("Player 1 Contols", 25, screenHeight / 3);
+            g.drawString("Arrow Left", 25, screenHeight / 3 + 25);
+            g.drawString("Arrow Right", 25, screenHeight / 3 + 50);
+            g.drawString("Arrow Up", 25, screenHeight / 3 + 75);
+            g.drawString("Arrow Down", 25, screenHeight / 3 + 100);
+            g.drawString("/ to fire", 25, screenHeight / 3 + 125);
+
+            g.drawString("Player 2 Contols", screenWidth * 3 / 4 + 25, screenHeight / 3);
+            g.drawString("W", screenWidth * 3 / 4 + 25, screenHeight / 3 + 25);
+            g.drawString("A", screenWidth * 3 / 4 + 25, screenHeight / 3 + 50);
+            g.drawString("S", screenWidth * 3 / 4 + 25, screenHeight / 3 + 75);
+            g.drawString("D", screenWidth * 3 / 4 + 25, screenHeight / 3 + 100);
+            g.drawString("Space to fire", screenWidth * 3 / 4 + 25, screenHeight / 3 + 125);
+
+            g.drawString("Powerup will destroy objets with one hit", screenWidth / 4, screenHeight * 5 / 6);
         }
 
         if (gameStart && playerOne.health > 0 && playerTwo.health > 0) {
@@ -443,15 +513,15 @@ public class TankX extends JApplet implements Runnable {
             AudioPlayer.player.start(bigExplosionAudio);
             g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
             g.setColor(Color.red);
-            g.drawString("Player two Wins!!!\nPlayer one you failz!!!", screenWidth / 3, screenHeight / 2);
+            g.drawString("Player two Wins!!!", screenWidth / 3, screenHeight / 2);
         } else if (playerTwo.health <= 0) {
             AudioPlayer.player.start(bigExplosionAudio);
             g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
             g.setColor(Color.red);
-            g.drawString("Player one Wins!!!\nPlayer two you failz!!!", screenWidth / 3, screenHeight / 2);
+            g.drawString("Player one Wins!!!", screenWidth / 3, screenHeight / 2);
         }
     }
-    
+
     public static void explosionSound1() {
         try {
             InputStream backgroundMusicPath = new FileInputStream(new File("ResourcesTank/Explosion_small.wav"));
