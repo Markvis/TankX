@@ -31,8 +31,8 @@ public class TankX extends JApplet implements Runnable {
 
     // necessity
     private Thread mainThread;
-    private BufferedImage bimg, bimg2;
-    static Graphics2D window1Graphics, window2Graphics;
+    private BufferedImage bimg, bimg2, miniMap;
+    static Graphics2D window1Graphics, window2Graphics, miniMapGraphics;
     static final int mapWidth = 2048, mapHeight = 1152, screenWidth = 1024, screenHeight = 576;
     int xMoveP1, yMoveP1, xMoveP2, yMoveP2, player1x, player1y, player2x, player2y, p1UP = 0, p2UP = 0;
     static GameEvents GlobalGameEvents;
@@ -63,6 +63,7 @@ public class TankX extends JApplet implements Runnable {
 
     // Images
     Image groundImg;
+    Image offScreen;
 
     // player objects
     GamePlayer playerOne;
@@ -212,7 +213,7 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
-    // moves the player/ environment observer
+    // moves the player/environment observer
     public class MovePlayer implements Observer {
 
         @Override
@@ -395,6 +396,49 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    public void drawMiniMap() {
+        if (miniMap == null) {
+            Dimension windowSize = new Dimension(mapWidth, mapHeight);
+            miniMap = (BufferedImage) createImage(windowSize.width,
+                    windowSize.height);
+            miniMapGraphics = miniMap.createGraphics();
+        }
+
+        int TileWidth = groundImg.getWidth(this);
+        int TileHeight = groundImg.getHeight(this);
+
+        int NumberX = (int) (mapWidth / TileWidth);
+        int NumberY = (int) (mapHeight / TileHeight);
+
+        for (int i = -1; i <= NumberY; i++) {
+            for (int j = 0; j <= NumberX; j++) {
+                miniMapGraphics.drawImage(groundImg, j * TileWidth,
+                        i * TileHeight + 0, TileWidth,
+                        TileHeight, this);
+            }
+        }
+
+        // draw players
+        playerOne.draw2(miniMapGraphics, 0, 0, this);
+        playerTwo.draw2(miniMapGraphics, 0, 0, this);
+
+        // draw powerups
+        for (int i = 0; i < powerUpArray.size(); i++) {
+            powerUpArray.get(i).draw(miniMapGraphics, 0, 0, this);
+        }
+
+        // draw bullets
+        for (int i = 0; i < bulletArray.size(); i++) {
+            bulletArray.get(i).draw(miniMapGraphics, 0, 0, this);
+        }
+
+        // draw walls window 1
+        for (int i = 0; i < wallArray.size(); i++) {
+            wallArray.get(i).draw(miniMapGraphics, 0, 0, this);
+        }
+    }
+
+
     public void drawGame() {
         drawBackGroundWithTileImage(window1Graphics, 1);
         drawBackGroundWithTileImage(window2Graphics, 2);
@@ -448,6 +492,8 @@ public class TankX extends JApplet implements Runnable {
         playerOne.draw2(window2Graphics, playerTwo.xOnMap - playerTwo.staticX, playerTwo.yOnMap - playerTwo.staticY, this);
         playerTwo.draw(window2Graphics, this);
         playerTwo.draw2(window1Graphics, playerOne.xOnMap - playerOne.staticX, playerOne.yOnMap - playerOne.staticY, this);
+
+        drawMiniMap();
     }
 
     @Override
@@ -479,7 +525,7 @@ public class TankX extends JApplet implements Runnable {
             g.drawImage(startScreen, (screenWidth / 2) - (startScreen.getWidth(null) / 2),
                     screenHeight / 2 - (startScreen.getHeight(null) / 2), this);
 
-            g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
+            g.setFont(new Font("A", Font.PLAIN, 30));
             g.setColor(Color.red);
             g.drawString("Please Press ENTER to Start", screenWidth / 3, screenHeight / 6);
             g.drawString("Player 1 Contols", 25, screenHeight / 3);
@@ -503,23 +549,29 @@ public class TankX extends JApplet implements Runnable {
             drawGame();
 
             // draw the two screens
-            g.drawImage(bimg, 0, 0, this);
             g.drawImage(bimg2, screenWidth / 2, 0, this);
-
+            g.drawImage(bimg, 0, 0, this);
+            
             // draw division line between the two screens
             g.drawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight);
+            
+            // draw minimap
+            g.drawImage(miniMap, screenWidth / 2 - (miniMap.getWidth() / 8) / 2, screenHeight - miniMap.getHeight() / 8,
+                    miniMap.getWidth() / 8, miniMap.getHeight() / 8, this);
         }
+
         if (playerOne.health <= 0) {
             AudioPlayer.player.start(bigExplosionAudio);
-            g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
+            g.setFont(new Font("TimesRoman", Font.BOLD, 30));
             g.setColor(Color.red);
             g.drawString("Player two Wins!!!", screenWidth / 3, screenHeight / 2);
         } else if (playerTwo.health <= 0) {
             AudioPlayer.player.start(bigExplosionAudio);
-            g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
+            g.setFont(new Font("TimesRoman", Font.BOLD, 30));
             g.setColor(Color.red);
             g.drawString("Player one Wins!!!", screenWidth / 3, screenHeight / 2);
         }
+        g.dispose();
     }
 
     public static void explosionSound1() {
