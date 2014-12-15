@@ -20,7 +20,7 @@ public class GameWalls {
     boolean destructable, visible;
     ArrayList<Image> sprite;
 
-    public GameWalls(int xPassed, int yPassed, boolean passedDestructable, ArrayList<Image> imageArray) {
+    public GameWalls(int xPassed, int yPassed, boolean visibility, boolean passedDestructable, ArrayList<Image> imageArray) {
         this.x = xPassed;
         this.y = yPassed;
         this.sprite = imageArray;
@@ -28,7 +28,7 @@ public class GameWalls {
         this.h = sprite.get(0).getHeight(null);
         this.imageIndex = 0;
         this.destructable = passedDestructable;
-        this.visible = false;
+        this.visible = visibility;
         if (destructable) {
             health = 2;
         } else {
@@ -48,9 +48,9 @@ public class GameWalls {
         }
     }
 
-    public void draw(Graphics2D graphics, ImageObserver obs) {
+    public void draw(Graphics2D graphics,int xOffset, int yOffset, ImageObserver obs) {
         if (visible) {
-            graphics.drawImage(sprite.get(imageIndex), x, y, obs);
+            graphics.drawImage(sprite.get(imageIndex), x+xOffset, y-yOffset, obs);
         }
     }
 }

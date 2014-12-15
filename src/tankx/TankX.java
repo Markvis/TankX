@@ -32,7 +32,7 @@ public class TankX extends JApplet implements Runnable {
     private BufferedImage bimg, bimg2;
     static Graphics2D window1Graphics, window2Graphics;
     static final int mapWidth = 2048, mapHeight = 1152, screenWidth = 1024, screenHeight = 576;
-    int xMoveP1, yMoveP1, xMoveP2, yMoveP2;
+    int xMoveP1, yMoveP1, xMoveP2, yMoveP2, player1x, player1y, player2x, player2y;
     static GameEvents GlobalGameEvents;
 
     // Object ArrayLists
@@ -106,7 +106,7 @@ public class TankX extends JApplet implements Runnable {
 
             // map input
             String token = "";
-            Scanner inFile = new Scanner(new File("ResourcesTank/pregeneratedTankXMap.txt")).useDelimiter("\t\\s*|\n");
+            Scanner inFile = new Scanner(new File("ResourcesTank/pregeneratedTankXMap.txt")).useDelimiter("\t\\s*|\n|\r");
             ArrayList<String> temps = new ArrayList<>();
 
             while (inFile.hasNext()) {
@@ -115,9 +115,33 @@ public class TankX extends JApplet implements Runnable {
             }
             inFile.close();
 
+            // 1 hard wall
+            // 2 soft wall 
+            // 3 player 1 location
+            // 4 player 2 location
+            // 0 no wall
+            for (int i = 0, x = 0, y = 0; i < temps.size(); i++) {
+                if (x > 2016) {
+                    x = 0;
+                    y += 32;
+                }
+                if ("2".equals(temps.get(i))) {
+                    wallArray.add(new GameWalls(x, y, true, true, wallsSprite));
+                } else if ("1".equals(temps.get(i))) {
+                    wallArray.add(new GameWalls(x, y, true, false, wallsSprite));
+                } else if ("3".equals(temps.get(i))) {
+                    player1x = x;
+                    player1y = y;
+                } else if ("4".equals(temps.get(i))) {
+                    player2x = x;
+                    player2y = y;
+                }
+                x += 32;
+            }
+
             // initlize players
-            playerOne = new GamePlayer(playerOneSprite, screenWidth / 4, screenHeight / 2, 1, 1, mapWidth / 4, mapHeight / 2);
-            playerTwo = new GamePlayer(playerTwoSprite, 200, 200, 1, 2, mapWidth, mapHeight);
+            playerOne = new GamePlayer(playerOneSprite, screenWidth / 4, screenHeight / 2, 1, 1, player1x, player1y);
+            playerTwo = new GamePlayer(playerTwoSprite, 200, 200, 1, 2, player2x, player2y);
             playerTwo.imageIndex = 30;
 
             moveEnvironment = new MovePlayer();
@@ -135,8 +159,6 @@ public class TankX extends JApplet implements Runnable {
         } catch (Exception ex) {
             System.out.println("Error: public void init() in TankX class");
         }
-
-        // test; delete later
     }
 
     public class KeyControl extends KeyAdapter {
@@ -147,18 +169,48 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    // moves the player/ environment observer
     public class MovePlayer implements Observer {
 
         @Override
         public void update(Observable o, Object arg) {
             KeyEvent e = (KeyEvent) GlobalGameEvents.event;
+                    
             if (e.getKeyCode() == KeyEvent.VK_UP) {
-                yMoveP1 -= 25;
+                double angle = getMultiplier(playerOne.imageIndex);
+                yMoveP1 -= 15.0 * Math.sin(angle);
+                xMoveP1 -= 15.0 * Math.cos(angle);
+                playerOne.yOnMap -= 15.0 * Math.sin(angle);
+                playerOne.xOnMap -= 15.0 * Math.cos(angle);
             } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-                xMoveP1 -= 25;
+                double angle = getMultiplier(playerOne.imageIndex);
+                yMoveP1 += 15.0 * Math.sin(angle);
+                xMoveP1 += 15.0 * Math.cos(angle);
+                playerOne.yOnMap += 15.0 * Math.sin(angle);
+                playerOne.xOnMap += 15.0 * Math.cos(angle);
+            }
+            if (e.getKeyCode() == KeyEvent.VK_W) {
+                yMoveP2 -= 25;
+            } else if (e.getKeyCode() == KeyEvent.VK_S) {
+                xMoveP2 -= 25;
             }
         }
+    }
 
+    // will get the angle in degrees
+    // then return it in radiands
+    public double getMultiplier(double index) {
+        if (index <= 15) {
+            return Math.toRadians(index/15*90);
+        } else if (index <= 30 && index > 15) {
+            return Math.toRadians(index/30*180);
+        } else if (index <= 45 && index > 30) {
+            return Math.toRadians(index/45*270);
+        } else if (index <= 60 && index > 45) {
+            return Math.toRadians(index/60*360);
+        }
+
+        return 0.0;
     }
 
     public void drawBackGroundWithTileImage(Graphics2D passedGraphics) {
@@ -171,19 +223,20 @@ public class TankX extends JApplet implements Runnable {
         for (int i = -1; i <= NumberY; i++) {
             for (int j = 0; j <= NumberX; j++) {
                 passedGraphics.drawImage(groundImg, j * TileWidth + (xMoveP1 % TileWidth),
-                        i * TileHeight + (yMoveP1 % TileHeight), TileWidth,
+                        i * TileHeight - (yMoveP1 % TileHeight), TileWidth,
                         TileHeight, this);
             }
         }
-    }
-    
-    public void drawWall(Graphics2D passedGraphics){
-        
     }
 
     public void drawGame() {
         drawBackGroundWithTileImage(window1Graphics);
         //drawBackGroundWithTileImage(window2Graphics);
+
+        // draw walls
+        for (int i = 0; i < wallArray.size(); i++) {
+            wallArray.get(i).draw(window1Graphics, playerOne.xOnMap, playerOne.yOnMap, this);
+        }
 
         playerOne.draw(window1Graphics, this);
         //playerTwo.draw(window2Graphics, this);

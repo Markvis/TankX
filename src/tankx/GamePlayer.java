@@ -54,6 +54,7 @@ public class GamePlayer implements Observer {
         return false;
     }
 
+    @Override
     public void update(Observable obj, Object arg) {
         GameEvents ge = (GameEvents) arg;
 
@@ -61,31 +62,17 @@ public class GamePlayer implements Observer {
             KeyEvent e = (KeyEvent) ge.event;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
-                    if (staticX > 0) {
-                        if (imageIndex < imageArray.size() - 1) {
-                            imageIndex++;
-                        } else {
-                            imageIndex = 0;
-                        }
+                    if (imageIndex < imageArray.size() - 1) {
+                        imageIndex++;
+                    } else {
+                        imageIndex = 0;
                     }
                     break;
                 case KeyEvent.VK_RIGHT:
-                    if (staticX < xOnMap - width) {
-                        if (imageIndex > 0) {
-                            imageIndex--;
-                        } else {
-                            imageIndex = 59;
-                        }
-                    }
-                    break;
-                case KeyEvent.VK_UP:
-                    if (staticY > 0) {
-                        //y -= speed ;
-                    }
-                    break;
-                case KeyEvent.VK_DOWN:
-                    if (staticY < yOnMap - height - 20) {
-                        //y += speed ;
+                    if (imageIndex > 0) {
+                        imageIndex--;
+                    } else {
+                        imageIndex = 59;
                     }
                     break;
                 default:
@@ -111,16 +98,6 @@ public class GamePlayer implements Observer {
                         } else {
                             imageIndex = 59;
                         }
-                    }
-                    break;
-                case KeyEvent.VK_W:
-                    if (staticY > 0) {
-                        //y -= speed + sensitivity;
-                    }
-                    break;
-                case KeyEvent.VK_S:
-                    if (staticY < yOnMap - height - 20) {
-                        //y += speed + sensitivity;
                     }
                     break;
                 default:
@@ -154,13 +131,5 @@ public class GamePlayer implements Observer {
         coordinates.add(this.staticY + (imageArray.get(0).getHeight(null) / 2));
 
         return coordinates;
-    }
-
-    public int getXcenter() {
-        return staticX + xOnMap / 2;
-    }
-
-    public int getYcenter() {
-        return staticY + yOnMap / 2;
     }
 }
