@@ -22,6 +22,14 @@ public class GameWalls {
     boolean destructable, visible;
     ArrayList<Image> sprite;
 
+    /**
+     * this is the constructor for the GameWalls
+     * @param xPassed the  x coordinate of the wall
+     * @param yPassed the  y coordinate of the wall
+     * @param visibility this is the visibility of the wall false to not draw
+     * @param passedDestructable this indicates the destructability of the wall
+     * @param imageArray this is the sprite of the wall
+     */
     public GameWalls(int xPassed, int yPassed, boolean visibility, boolean passedDestructable, ArrayList<Image> imageArray) {
         this.x = xPassed;
         this.y = yPassed;
@@ -38,12 +46,18 @@ public class GameWalls {
         }
     }
 
+    /**
+     * this will update the wall based on its health
+     */
     public void update() {
         if (health < 1) {
             visible = false;
         }
     }
 
+    /**
+     * this will reset the wall based on the visibility
+     */
     public void reset() {
         if (destructable) {
             health = 2;
@@ -51,6 +65,14 @@ public class GameWalls {
         imageIndex = 0;
     }
     
+    /**
+     * this will check collision with the wall against any other object on the screen
+     * @param x coordinate of the other object
+     * @param y coordinate of the other object
+     * @param w width of the other object
+     * @param h height of the other object
+     * @return true if theres a collision
+     */
     public boolean collision(int x, int y, int w, int h) {
         bbox = new Rectangle(this.x, this.y, this.w, this.h);
         Rectangle otherBBox = new Rectangle(x, y, w, h);

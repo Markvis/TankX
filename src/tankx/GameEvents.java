@@ -17,6 +17,10 @@ public class GameEvents extends Observable {
     int type;
     Object event;
 
+    /**
+     * notify observers that key is pressed
+     * @param e 
+     */
     public void setValue(KeyEvent e) {
         type = 1; // let's assume this means key input. 
         //Should use CONSTANT value for this when you program
@@ -26,6 +30,10 @@ public class GameEvents extends Observable {
         notifyObservers(this);
     }
 
+    /**
+     * notify observer about keypress with a message
+     * @param msg 
+     */
     public void setValue(String msg) {
         type = 2;
         event = msg;

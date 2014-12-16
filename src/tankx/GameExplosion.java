@@ -21,6 +21,10 @@ public class GameExplosion {
     boolean visible;
     ArrayList <Image> imageArray;
 
+    /**
+     * 
+     * @param sprite pass a arraylist of images also known as sprites
+     */
     GameExplosion(ArrayList <Image> sprite) {
         this.x = 0;
         this.y = 0;
@@ -31,6 +35,9 @@ public class GameExplosion {
         this.imageHeight = this.imageArray.get(0).getHeight(null);
     }
     
+    /**
+     * will update the explosion animation
+     */
     public void update(){
         if(visible){
             this.imageIndex++;
@@ -41,6 +48,11 @@ public class GameExplosion {
         }
     }
     
+    /**
+     * will draw the animation of the explosion
+     * @param graphics the graphics2d where the animation will be drawn
+     * @param obs the imageobserver
+     */
     public void draw(Graphics2D graphics, ImageObserver obs){
         if(visible){
             graphics.drawImage(imageArray.get(imageIndex), 

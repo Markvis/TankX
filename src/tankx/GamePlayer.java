@@ -27,6 +27,16 @@ public class GamePlayer implements Observer {
     int imageIndex;
     ArrayList<Image> imageArray;
 
+    /**
+     * gameplayer constructor
+     * @param arrayOfImages this is the sprite of the player
+     * @param x this is the x draw location of the player on the screen
+     * @param y this is the y draw location of the player on the screen
+     * @param speed this is the speed of the player
+     * @param pNum this is the player number
+     * @param xRelativeToMap this is the x location of the player relative to that map
+     * @param yRelativeToMap this is the y location of the player relative to that map
+     */
     GamePlayer(ArrayList<Image> arrayOfImages, int x, int y, int speed, int pNum, int xRelativeToMap, int yRelativeToMap) {
         this.staticX = x;
         this.staticY = y;
@@ -42,20 +52,45 @@ public class GamePlayer implements Observer {
         this.playerNumber = pNum;
     }
 
+    /**
+     * draw the gameplayer on the screen
+     * @param graphics this is the graphics2d
+     * @param obs image observer
+     */
     public void draw(Graphics2D graphics, ImageObserver obs) {
         graphics.drawImage(imageArray.get(imageIndex), staticX, staticY, obs);
     }
     
+    /**
+     * this will draw the gameplayer relative to the map
+     * @param graphics this is the graphics2d location
+     * @param xOffset this is the x offset of the gameplayer
+     * @param yOffset this is the y offset of the gameplayer
+     * @param obs this is the image observer
+     */
     public void draw2(Graphics2D graphics, int xOffset, int yOffset, ImageObserver obs) {
         graphics.drawImage(imageArray.get(imageIndex), this.xOnMap - xOffset, this.yOnMap - yOffset, obs);
     }
 
+    /**
+     * this will check for collision of the gameplayer
+     * @param x the x coordinate of the other object
+     * @param y the y coordinate of the other object
+     * @param w the width of the other object
+     * @param h the height of the other object
+     * @return true if theres a collision
+     */
     public boolean collision(int x, int y, int w, int h) {
         bbox = new Rectangle(this.xOnMap, this.yOnMap, this.width, this.height);
         Rectangle otherBBox = new Rectangle(x, y, w, h);
         return this.bbox.intersects(otherBBox);
     }
 
+    /**
+     * this will update the gameplayer's sprite based on the key press
+     * @param obj observable from caller
+     * @param arg keyevent from caller
+     */
     @Override
     public void update(Observable obj, Object arg) {
         GameEvents ge = (GameEvents) arg;

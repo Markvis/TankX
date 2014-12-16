@@ -72,6 +72,9 @@ public class TankX extends JApplet implements Runnable {
     // environment mover
     MovePlayer moveEnvironment;
 
+    /**
+     * this will initialize the main game object
+     */
     @Override
     public void init() {
         // set initial background color
@@ -205,6 +208,9 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    /**
+     * this will manage the player key presses
+     */
     public class KeyControl extends KeyAdapter {
 
         @Override
@@ -213,9 +219,17 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
-    // moves the player/environment observer
+    /**
+     * this will observe what keys are pressed and respond accordingly
+     */
     public class MovePlayer implements Observer {
 
+        /**
+         * this will update the game player
+         *
+         * @param o the observable from the caller
+         * @param arg the key press from the caller
+         */
         @Override
         public void update(Observable o, Object arg) {
             KeyEvent e = (KeyEvent) GlobalGameEvents.event;
@@ -272,8 +286,12 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
-    // will get the angle in degrees
-    // then return it in radiands
+    /**
+     * this will get the angle of the players direction
+     *
+     * @param index is the direction of the player
+     * @return returns the angle in radians
+     */
     public double getMultiplier(double index) {
         if (index <= 15) {
             return Math.toRadians(index / 15 * 90);
@@ -289,6 +307,8 @@ public class TankX extends JApplet implements Runnable {
     }
 
     /**
+     * this will draw the background of the game on the passed screen by the
+     * caller
      *
      * @param passedGraphics the graphics source for window
      * @param playerNum the player number
@@ -320,6 +340,12 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    /**
+     * this will check collision between the players and the walls
+     *
+     * @param arg is the GamePlayer
+     * @return true if theres a collision false otherwise
+     */
     public boolean playerToWallCollision(Object arg) {
 
         GamePlayer temp = (GamePlayer) arg;
@@ -338,6 +364,9 @@ public class TankX extends JApplet implements Runnable {
         return false;
     }
 
+    /**
+     * this will check bullet collision with soft and hard walls
+     */
     public void bulletToWallCollision() {
         for (int i = 0; i < wallArray.size(); i++) {
             for (int j = 0; j < bulletArray.size(); j++) {
@@ -364,6 +393,10 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    /**
+     * this will check bullet to player collision subtract health from player
+     * based on the bullet damage
+     */
     public void bulletToPlayerCollision() {
         for (int i = 0; i < bulletArray.size(); i++) {
             if (bulletArray.get(i).show) {
@@ -382,6 +415,10 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    /**
+     * this will check powerup to player collision
+     *
+     */
     public void powerUpToPlayerCollision() {
         for (int i = 0; i < powerUpArray.size(); i++) {
             if (powerUpArray.get(i).visible) {
@@ -396,6 +433,9 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
+    /**
+     * this will draw the minimap on the screen
+     */
     public void drawMiniMap() {
         if (miniMap == null) {
             Dimension windowSize = new Dimension(mapWidth, mapHeight);
@@ -438,7 +478,9 @@ public class TankX extends JApplet implements Runnable {
         }
     }
 
-
+    /**
+     * this will draw the whole game and check for all the collisions
+     */
     public void drawGame() {
         drawBackGroundWithTileImage(window1Graphics, 1);
         drawBackGroundWithTileImage(window2Graphics, 2);
@@ -511,10 +553,9 @@ public class TankX extends JApplet implements Runnable {
             window2Graphics = bimg2.createGraphics();
         }
 
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, mapWidth, mapHeight);
-
         if (gameStart == false) {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, screenWidth, screenHeight);
             Image startScreen = null;
             try {
                 startScreen = ImageIO.read(new File("ResourcesTank/Title.png"));
@@ -551,19 +592,22 @@ public class TankX extends JApplet implements Runnable {
             // draw the two screens
             g.drawImage(bimg2, screenWidth / 2, 0, this);
             g.drawImage(bimg, 0, 0, this);
-            
             // draw division line between the two screens
             g.drawLine(screenWidth / 2, 0, screenWidth / 2, screenHeight);
-            
+
             // draw minimap
+            g.clearRect(screenWidth / 2 - mapWidth / 4, screenHeight - mapHeight / 8,
+                    mapWidth / 8, mapHeight / 8);
             g.drawImage(miniMap, screenWidth / 2 - (miniMap.getWidth() / 8) / 2, screenHeight - miniMap.getHeight() / 8,
-                    miniMap.getWidth() / 8, miniMap.getHeight() / 8, this);
+                 miniMap.getWidth() / 8, miniMap.getHeight() / 8, this);
         }
 
         if (playerOne.health <= 0) {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, screenWidth, screenHeight);
             AudioPlayer.player.start(bigExplosionAudio);
             g.setFont(new Font("TimesRoman", Font.BOLD, 30));
-            g.setColor(Color.red);
+            g.setColor(Color.RED);
             g.drawString("Player two Wins!!!", screenWidth / 3, screenHeight / 2);
         } else if (playerTwo.health <= 0) {
             AudioPlayer.player.start(bigExplosionAudio);
@@ -574,6 +618,9 @@ public class TankX extends JApplet implements Runnable {
         g.dispose();
     }
 
+    /**
+     * this will make an explosion sound go off
+     */
     public static void explosionSound1() {
         try {
             InputStream backgroundMusicPath = new FileInputStream(new File("ResourcesTank/Explosion_small.wav"));
@@ -610,7 +657,6 @@ public class TankX extends JApplet implements Runnable {
         final TankX game = new TankX();
         game.init();
         JFrame f = new JFrame("TankX");
-        f.setLocationRelativeTo(null);
         f.addWindowListener(new WindowAdapter() {
         });
         f.getContentPane().add("Center", game);

@@ -24,6 +24,19 @@ public class GameBullets {
     Rectangle bbox;
     ArrayList<Image> imageArray;
 
+    /**
+     * initialize the bullet with the following:
+     * 
+     * @param img array list of images
+     * @param xStart original x coordinate of the bullet
+     * @param yStart original y coordinate of the bullet
+     * @param xMoveSpeed x speed of the bullet
+     * @param yMoveSpeed y speed of the bullet
+     * @param passedImageIndex direction of the bullet
+     * @param visibility true to draw object
+     * @param fire player who wired
+     * @param damage damage of the bullet
+     */
     public GameBullets(ArrayList<Image> img, int xStart, int yStart, double xMoveSpeed, 
             double yMoveSpeed, int passedImageIndex, boolean visibility, int fire, int damage) {
         this.x = xStart;
@@ -39,6 +52,9 @@ public class GameBullets {
         height = imageArray.get(0).getHeight(null);
     }
 
+    /**
+     * move the bullet from point a to b based on the x and y speed
+     */
     public void update() {
         if (show == true) {
             x += xSpeed;
@@ -46,12 +62,23 @@ public class GameBullets {
         }
     }
 
+    /**
+     * reset the bullet object to x = 0 y = 0 and turn visibility off
+     */
     public void reset() {
         show = false;
         this.x = 0;
         this.y = 0;
     }
 
+    /**
+     * this will draw the bullet on the passed graphics2d
+     * 
+     * @param graphics which graphics2d to draw the bullet
+     * @param xOffset x offset based relative to the player on screen
+     * @param yOffset y offset based relative to the player on screen
+     * @param obs the image observer
+     */
     public void draw(Graphics2D graphics, int xOffset, int yOffset, ImageObserver obs) {
         if (show) {
             graphics.drawImage(imageArray.get(imageIndex), x - (this.width/2) - xOffset, y - (this.height/2) - yOffset, obs);
@@ -59,6 +86,7 @@ public class GameBullets {
     }
 
     /**
+     * this will check the object for collision
      *
      * @param x is the current x location
      * @param y is the current y location
